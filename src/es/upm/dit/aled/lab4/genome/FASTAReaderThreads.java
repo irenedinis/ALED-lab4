@@ -8,11 +8,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import clase11.TareaExecutor;
+//import clase11.TareaExecutor;
 
 /**
  * Reads a FASTA file containing genetic information and allows for the search
@@ -117,12 +118,12 @@ public class FASTAReaderThreads {
 	 *         pattern in the data.
 	 */
 	public List<Integer> search(byte[] pattern) {
-		List<Integer> res = new ArrayList<Integer>;
+		List<Integer> res = new ArrayList<Integer>();
 		int cores = Runtime.getRuntime().availableProcessors();
 		ExecutorService executor = Executors.newFixedThreadPool(cores);
 		
 		int tamTarea = validBytes/cores;
-		List<Future<List<Integer>>> futuros = new ArrayList<>;
+		List<Future<List<Integer>>> futuros = new ArrayList<>();
 		//creo todas las tareas menos la ultima
 		for(int i = 0; i < cores - 1; i++) {
 			int lo = i * tamTarea;
@@ -139,7 +140,13 @@ public class FASTAReaderThreads {
 		futuros.add(futuro);
 		
 		for(Future<List<Integer>> future : futuros) {
-			List<Integer> resParcial = future.get();
+			List<Integer> resParcial = new ArrayList<>();
+			try {
+				resParcial = future.get();
+			} catch (InterruptedException | ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			res.addAll(resParcial);
 			
 		}
