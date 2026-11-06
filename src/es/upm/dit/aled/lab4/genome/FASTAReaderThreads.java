@@ -12,6 +12,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import clase11.TareaExecutor;
+
 /**
  * Reads a FASTA file containing genetic information and allows for the search
  * of specific patterns within these data. The information is stored as an array
@@ -115,8 +117,35 @@ public class FASTAReaderThreads {
 	 *         pattern in the data.
 	 */
 	public List<Integer> search(byte[] pattern) {
-		// TODO
-		return null;
+		List<Integer> res = new ArrayList<Integer>;
+		int cores = Runtime.getRuntime().availableProcessors();
+		ExecutorService executor = Executors.newFixedThreadPool(cores);
+		
+		int tamTarea = validBytes/cores;
+		List<Future<List<Integer>>> futuros = new ArrayList<>;
+		//creo todas las tareas menos la ultima
+		for(int i = 0; i < cores - 1; i++) {
+			int lo = i * tamTarea;
+			int hi = (i + 1) * tamTarea;
+			FASTASearchCallable tarea = new FASTASearchCallable(this, lo, hi, pattern);
+			Future<List<Integer>> futuro = executor.submit(tarea);
+			futuros.add(futuro);
+		}
+		
+		int lo = tamTarea * (cores - 1);
+		int hi = validBytes;
+		FASTASearchCallable tarea = new FASTASearchCallable(this, lo, hi, pattern);
+		Future<List<Integer>> futuro = executor.submit(tarea); 
+		futuros.add(futuro);
+		
+		for(Future<List<Integer>> future : futuros) {
+			List<Integer> resParcial = future.get();
+			res.addAll(resParcial);
+			
+		}
+		executor.shutdown();
+		return res;
+	
 	}
 
 	public static void main(String[] args) {

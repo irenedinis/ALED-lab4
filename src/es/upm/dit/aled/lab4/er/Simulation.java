@@ -22,7 +22,7 @@ public class Simulation {
 	public static void main(String[] args) {
 		try {
 			Simulation sim = new Simulation(args[0]);
-			sim.start();
+			sim.start(); //no es una hebra
 		} catch (FileNotFoundException e) {
 			System.out.println("File not found.");
 		}
